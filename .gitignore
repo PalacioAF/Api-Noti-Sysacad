@@ -10,6 +10,8 @@
 
 # production
 /build
+/variables.env
+/react-native-syscad-firebase-adminsdk.json
 
 # misc
 .DS_Store
