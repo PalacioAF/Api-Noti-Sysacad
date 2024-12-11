@@ -12,12 +12,8 @@ exports.addNotification = async (req, res) => {
         const notification = new Notification(req.body);
         notification.user=req.user.id;
         await notification.save();
-        const resFirebase = await messagingController.send(req);
-        if (resFirebase){
-            const {successCount}=resFirebase
-            notification.state = successCount > 0;
-            await notification.save();
-        }
+        await messagingController.send(req);
+        await notification.save();
         const populatedNotification = await Notification.findById(
           notification._id
         ).populate({

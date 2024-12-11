@@ -1,37 +1,46 @@
-var admin = require("../node_modules/firebase-admin");
-var serviceAccount = require("../react-native-syscad-firebase-adminsdk.json");
+const admin = require('firebase-admin');
+const serviceAccount = require('../react-native-syscad-firebase-adminsdk.json');
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://react-native-syscad-default-rtdb.firebaseio.com"
-});
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://react-native-syscad-default-rtdb.firebaseio.com"
+  });
 
-function send(req){
+  function send(req) {
     const { title, description } = req.body;
-    return loadAllUser().then(users=>{
-        let tokens=[];
-        for(let user of users){
-            if(user.idtoken !== undefined && user.login && user.setting ){
-                tokens.push(user.idtoken);
+
+    return loadAllUser()
+      .then((users) => {
+        let validTokens = [];
+    
+        // Filtrar tokens válidos
+        users.forEach(user => {
+          if (user.idtoken && user.login && user.setting) {
+            if (user.idtoken.trim() !== '') {
+              validTokens.push(user.idtoken);
             }
+          }
+        });
+    
+        if (validTokens.length === 0) {
+          console.error('No tokens válidos encontrados');
+          throw new Error('No tokens válidos para enviar el mensaje');
         }
-        let payload={
-            data: {
+
+        return validTokens.forEach(token =>{
+            let payload = {
+                data: {
                 title: title,
-                description: description
-            }
-        };
-        return admin.messaging().sendToDevice(tokens,payload).then((response) => {
-            console.log('Successfully sent message:', response);
-            return response
-          })
-          .catch((error) => {
-            console.log('Error sending message:', error);
-          });
-        
-    }).catch((error) => {
-        console.log('Error sending message:', error);
-      });;
-};
+                body: description,
+              },
+              token,
+            };
+            admin.messaging().send(payload)
+        })
+      })
+      .catch((error) => {
+        console.log("Error loading users:", error);
+      });
+  }
 
 
 function loadAllUser(){
