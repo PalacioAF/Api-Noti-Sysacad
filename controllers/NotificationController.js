@@ -11,7 +11,7 @@ exports.addNotification = async (req, res) => {
     try {
         const notification = new Notification(req.body);
         notification.user=req.user.id;
-        await notification.save();
+        notification.state = true
         await messagingController.send(req);
         await notification.save();
         const populatedNotification = await Notification.findById(
