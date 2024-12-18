@@ -2,6 +2,10 @@ const Notification = require('../models/Notification');
 const { validationResult } = require('express-validator');
 const messagingController = require('../controllers/messagingController');
 
+const now = new Date();
+now.setHours(now.getHours() - 3);
+const today = now.toISOString().split('T')[0];
+
 exports.addNotification = async (req, res) => {
     const errors = validationResult(req);
     if( !errors.isEmpty() ) {
@@ -11,8 +15,12 @@ exports.addNotification = async (req, res) => {
     try {
         const notification = new Notification(req.body);
         notification.user=req.user.id;
-        notification.state = true
-        await messagingController.send(req);
+        if(req.body.date === today){
+            const results=await messagingController.send(req);
+            notification.state=results;
+        }else{
+            notification.state=null;
+        }
         await notification.save();
         const populatedNotification = await Notification.findById(
           notification._id

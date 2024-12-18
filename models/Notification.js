@@ -11,6 +11,10 @@ const NotificationSchema = mongoose.Schema({
         required: true,
         trim: true
     },
+    date: {
+        type: String,
+        required: true
+    },
     state: {
         type: Boolean,
         default: false
